@@ -1,3 +1,6 @@
+# Added by me
+.gitignore
+
 # API keys — never commit these
 .env
 

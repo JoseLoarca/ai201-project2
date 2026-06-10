@@ -14,9 +14,12 @@ but check your terminal — the port may differ).
 
 import gradio as gr
 
+from logger import get_session_logger
+
 from agent import run_agent
 from utils.data_loader import get_example_wardrobe, get_empty_wardrobe
 
+logger = get_session_logger()
 
 # ── query handler ─────────────────────────────────────────────────────────────
 
@@ -119,5 +122,6 @@ Describe what you're looking for — include size and price if you want to filte
 
 
 if __name__ == "__main__":
+    logger.info("=== Launching interface ===")
     demo = build_interface()
     demo.launch()

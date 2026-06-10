@@ -1,3 +1,5 @@
+from tools import search_listings
+
 # FitFindr — planning.md
 
 > Complete this document before writing any implementation code.
@@ -136,14 +138,148 @@ Write out what a full user interaction looks like from start to finish — tool 
 
 **Example user query:** "I'm looking for a vintage graphic tee under $30. I mostly wear baggy jeans and chunky sneakers. What's out there and how would I style it?"
 
-**Step 1:**
-<!-- What does the agent do first? Which tool is called? With what input? -->
+**Step 1:** <!-- What does the agent do first? Which tool is called? With what input? -->
+The agent starts by searching (using the search_listings() tool) for listings that match the criteria specified by the 
+user: vintage graphic tee under $30.
 
-**Step 2:**
-<!-- What happens next? What was returned from step 1? What tool is called now? -->
+This is an example of how the tool call would look: 
+```python
+search_listings("vintage graphic tee", max_price=30.0)
+```
 
-**Step 3:**
-<!-- Continue until the full interaction is complete -->
+**Step 2:** <!-- What happens next? What was returned from step 1? What tool is called now? -->
+The tool call from Step 1 returns the following listings:
+```json
+[
+    {
+        "id": "lst_002",
+        "title": "Y2K Baby Tee — Butterfly Print",
+        "description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
+        "category": "tops",
+        "style_tags": ["y2k", "vintage", "graphic tee", "cottagecore"],
+        "size": "S/M",
+        "condition": "excellent",
+        "price": 18,
+        "colors": ["white", "pink", "purple"],
+        "brand": null,
+        "platform": "depop"
+    },
+    {
+        "id": "lst_006",
+        "title": "Graphic Tee — 2003 Tour Bootleg Style",
+        "description": "Vintage-style bootleg tee with faded graphic. Slightly boxy fit. 100% cotton, soft and worn-in.",
+        "category": "tops",
+        "style_tags": ["graphic tee", "vintage", "grunge", "streetwear", "band tee"],
+        "size": "L",
+        "condition": "good",
+        "price": 24,
+        "colors": ["black"],
+        "brand": null,
+        "platform": "depop"
+    },
+    {
+        "id": "lst_033",
+        "title": "Vintage Band Tee — Faded Grey",
+        "description": "Faded grey band-style tee with distressed graphic. Crew neck. Fits boxy. Well-loved but no holes or major damage.",
+        "category": "tops",
+        "style_tags": ["vintage", "grunge", "band tee", "graphic tee", "streetwear"],
+        "size": "L",
+        "condition": "fair",
+        "price": 19,
+        "colors": ["grey", "charcoal"],
+        "brand": null,
+        "platform": "depop"
+    }
+]
 
-**Final output to user:**
-<!-- What does the user actually see at the end? -->
+```
+The results are ordered by relevance: condition is a top priority, followed by price. Based on this,
+the agent picks the first listing:
+```json
+{
+    "id": "lst_002",
+    "title": "Y2K Baby Tee — Butterfly Print",
+    "description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
+    "category": "tops",
+    "style_tags": ["y2k", "vintage", "graphic tee", "cottagecore"],
+    "size": "S/M",
+    "condition": "excellent",
+    "price": 18,
+    "colors": ["white", "pink", "purple"],
+    "brand": null,
+    "platform": "depop"
+}
+```
+Now, the agent uses this listing and the user's wardrobe (baggy jeans and chunky sneakers) to call suggest_outfit().
+This is an example of how the tool call would look:
+```python
+item = {
+    "id": "lst_002",
+    "title": "Y2K Baby Tee — Butterfly Print",
+    "description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
+    "category": "tops",
+    "style_tags": ["y2k", "vintage", "graphic tee", "cottagecore"],
+    "size": "S/M",
+    "condition": "excellent",
+    "price": 18,
+    "colors": ["white", "pink", "purple"],
+    "brand": None,
+    "platform": "depop",
+}
+
+
+wardrobe = {
+    "items": [
+        {
+            "id": "w_001",
+            "name": "Baggy straight-leg jeans, dark wash",
+            "category": "bottoms",
+            "colors": ["dark blue", "indigo"],
+            "style_tags": ["denim", "streetwear", "baggy"],
+            "notes": "High-waisted, sits above the hip",
+        },
+        {
+            "id": "w_007",
+            "name": "Chunky white sneakers",
+            "category": "shoes",
+            "colors": ["white"],
+            "style_tags": ["sneakers", "chunky", "streetwear"],
+            "notes": None,
+        },
+    ]
+}
+
+
+suggest_outfit(item, wardrobe)
+```
+
+**Step 3:** <!-- Continue until the full interaction is complete -->
+The tool call from Step 2 returns the following: "_Pair this with your wide-leg jeans and platform Docs for a classic 90s grunge look. Roll the sleeves once and tuck the front corner slightly for shape._"
+
+Now, the agent goes ahead and performs a call to create_fit_card() to get the final output for the user.
+
+This is an example of how the tool call would look:
+```python
+outfit = "Pair this with your wide-leg jeans and platform Docs for a classic 90s grunge look. Roll the sleeves once and tuck the front corner slightly for shape."
+
+item = {
+    "id": "lst_002",
+    "title": "Y2K Baby Tee — Butterfly Print",
+    "description": "Super cute early 2000s baby tee with butterfly graphic. Fitted crop length. Tag says medium but fits like a small.",
+    "category": "tops",
+    "style_tags": ["y2k", "vintage", "graphic tee", "cottagecore"],
+    "size": "S/M",
+    "condition": "excellent",
+    "price": 18,
+    "colors": ["white", "pink", "purple"],
+    "brand": None,
+    "platform": "depop",
+}
+
+create_fit_card(outfit, item)
+```
+
+**Final output to user:** <!-- What does the user actually see at the end? -->
+The tool call from Step 3 returns the following: "_thrifted this faded band tee off depop for $22 and honestly it was made for my wide-legs 🖤 full look in my stories_".
+
+This is the final output that the user sees at the end.
